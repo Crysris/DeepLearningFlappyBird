@@ -3,6 +3,7 @@ import sys
 from pygame.locals import *
 import random
 import bisect
+import numpy as np
 
 FPS = 30
 SCREENWIDTH = 1280
@@ -95,16 +96,21 @@ class GameState(object):
             for tree in self.tree._upperTrees:
                 treeMidPos = tree['x'] + IMAGES['tree'][0].get_width() / 2
                 if treeMidPos <= playerMidPos < treeMidPos - self.tree._treeSpeed:
-                    self.birdList[i].score += 50
+                    # 每飞过一棵树就给予50的reword
+                    # self.birdList[i].score += 50
+                    self.passedTrees += 1
                     break
             # 检查是否已产生撞击
             if self.check(i)[0]:
                 self.birdList[i].survived = False
             else:
+                # 每存活着一帧就给予1的reword
                 self.birdList[i].score += 1
 
+        newRound = False
         if [self.birdList[i].survived for i in range(self.num)] == [0] * 10:
             self.start()
+            newRound = True
         SCREEN.blit(IMAGES['background'], (0, 0))
         self.tree.start()
         self.groundMoving(self.fSpeed)
@@ -113,6 +119,10 @@ class GameState(object):
                 self.birdList[i].flap()
         pg.display.update()
         FPSCLOCK.tick(FPS)
+        # 返回最大reword和飞过树的数目
+        return newRound, np.max([
+            self.birdList[i].score for i in range(self.num)
+        ]), np.max([self.birdList[i].passedTrees for i in range(self.num)])
 
     def groundMoving(self, speed):
         self.basex = -((-self.basex + speed) % self._baseShift)
@@ -204,6 +214,7 @@ class Bird(object):
         self.score = 0
         self.survived = True
         self._index = index
+        self.passedTrees = 0
 
     def flap(self):
         if (self._loopIter + 1) % 3 == 0:
