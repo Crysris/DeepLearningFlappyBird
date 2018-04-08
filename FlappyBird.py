@@ -6,7 +6,7 @@ import bisect
 import numpy as np
 
 FPS = 30
-SCREENWIDTH = 1000
+SCREENWIDTH = 320
 SCREENHEIGHT = 640
 # SCREENWIDTH=1000
 # SCREENHIEGHT=640
@@ -269,13 +269,13 @@ class Tree(object):
         self._upperTrees = []
         self._lowerTrees = []
         self._count = 0
-        for i in range(4):
+        for i in range(1):
             self._upperTrees.append({
-                'x': SCREENWIDTH - DIS * (3 - i),
+                'x': SCREENWIDTH - DIS * (i) + 150,
                 'y': newTrees[i][0]['y']
             })
             self._lowerTrees.append({
-                'x': SCREENWIDTH - DIS * (3 - i),
+                'x': SCREENWIDTH - DIS * (i) + 150,
                 'y': newTrees[i][1]['y']
             })
 
@@ -307,9 +307,9 @@ class Tree(object):
         treeHeight = IMAGES['tree'][0].get_height()
         treeX = SCREENWIDTH
         return [{
-            'x': treeX + 100,
+            'x': treeX + 150,
             'y': gapY - treeHeight
         }, {
-            'x': treeX + 100,
+            'x': treeX + 150,
             'y': gapY + TREEGAPSIZE
         }]
