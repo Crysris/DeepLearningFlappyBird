@@ -62,7 +62,7 @@ class Genetic(object):
         change = [1, 0.5, -0.5, -1]
         for i in range(self.num):
             prob = np.random.uniform()
-            if prob > 0.1:
+            if prob > 0.9:
                 self._layer_w_b_1[i][
                     'w'] = self._layer_w_b_1[i]['w'] + change[np.random.
                                                               randint(4)]
