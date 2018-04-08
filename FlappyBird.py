@@ -6,8 +6,10 @@ import bisect
 import numpy as np
 
 FPS = 30
-SCREENWIDTH = 1280
-SCREENHEIGHT = 720
+SCREENWIDTH = 1000
+SCREENHEIGHT = 640
+# SCREENWIDTH=1000
+# SCREENHIEGHT=640
 
 # 上下2棵树间隙高度
 TREEGAPSIZE = 170
@@ -18,6 +20,7 @@ BIRDS = []
 
 # 树与树间的距离
 DIS = 250
+# DIS=250
 
 # 奖励
 # 每经过一帧给予1的奖励
@@ -51,9 +54,10 @@ class GameState(object):
                           'src/birds_downflap_' + str(i) + '.png'))
         IMAGES['player'] = []
         for i in range(Num):
+            index = np.random.randint(10)
             IMAGES['player'].append(
-                (pg.image.load(BIRDS[i][0]).convert_alpha(),
-                 pg.image.load(BIRDS[i][1]).convert_alpha()))
+                (pg.image.load(BIRDS[index][0]).convert_alpha(),
+                 pg.image.load(BIRDS[index][1]).convert_alpha()))
 
         # 草地移动速度
         self.lSpeed = 4
@@ -98,7 +102,7 @@ class GameState(object):
                 if treeMidPos <= playerMidPos < treeMidPos - self.tree._treeSpeed:
                     # 每飞过一棵树就给予50的reword
                     # self.birdList[i].score += 50
-                    self.passedTrees += 1
+                    self.birdList[i].passedTrees += 1
                     break
             # 检查是否已产生撞击
             if self.check(i)[0]:
@@ -108,7 +112,8 @@ class GameState(object):
                 self.birdList[i].score += 1
 
         newRound = False
-        if [self.birdList[i].survived for i in range(self.num)] == [0] * 10:
+        if [self.birdList[i].survived
+                for i in range(self.num)] == [0] * self.num:
             self.start()
             newRound = True
         SCREEN.blit(IMAGES['background'], (0, 0))
@@ -296,9 +301,9 @@ class Tree(object):
         treeHeight = IMAGES['tree'][0].get_height()
         treeX = SCREENWIDTH
         return [{
-            'x': treeX,
+            'x': treeX + 100,
             'y': gapY - treeHeight
         }, {
-            'x': treeX,
+            'x': treeX + 100,
             'y': gapY + TREEGAPSIZE
         }]

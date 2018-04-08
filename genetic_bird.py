@@ -6,7 +6,7 @@ import tensorflow as tf
 class Genetic(object):
     def __init__(self):
         '''初始化10只鸟遗传'''
-        self.num = 10
+        self.num = 50
 
     def initNetwork(self):
         '''初始化10只鸟的权值与bias'''
@@ -59,9 +59,24 @@ class Genetic(object):
 
     def mutation(self):
         '''随机选址权值突变'''
-        pass
+        change = [1, 0.5, -0.5, -1]
+        for i in range(self.num):
+            prob = np.random.uniform()
+            if prob > 0.1:
+                self._layer_w_b_1[i][
+                    'w'] = self._layer_w_b_1[i]['w'] + change[np.random.
+                                                              randint(4)]
+                self._layer_w_b_1[i][
+                    'b'] = self._layer_w_b_1[i]['b'] + change[np.random.
+                                                              randint(4)]
+                self._layer_w_b_output[i][
+                    'w'] = self._layer_w_b_output[i]['w'] + change[np.random.
+                                                                   randint(4)]
+                self._layer_w_b_output[i][
+                    'b'] = self._layer_w_b_output[i]['b'] + change[np.random.
+                                                                   randint(4)]
 
-    def getTopBirdIndex(self, k=5):
+    def getTopBirdIndex(self, k=20):
         '''返回score最大的5只鸟的index'''
         tuples = [(self.game.birdList[i].score, i) for i in range(self.num)]
         return [val[1] for val in sorted(tuples[:k])]
@@ -75,7 +90,18 @@ class Genetic(object):
         Round = 1
         maxScore = 0
         maxTrees = 0
+        saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
+        checkpoint = tf.train.get_checkpoint_state('saved_networks')
+        if checkpoint and checkpoint.model_checkpoint_path:
+            saver.restore(sess, checkpoint.model_checkpoint_path)
+            print('network loaded succeccfully!',
+                  checkpoint.model_checkpoint_path)
+        else:
+            print('network loaded failed!')
+        # 10只鸟的tensor
+        layer_output = [self.predict(i) for i in range(self.num)]
+
         while True:
             actions = []
             for i in range(self.num):
@@ -83,10 +109,9 @@ class Genetic(object):
                     self.game.birdList[i]._playerx,
                     self.game.birdList[i]._playery
                 ]]
-                layer_output = self.predict(i)
                 actions.append(
                     np.argmax(
-                        sess.run(layer_output, feed_dict={self._X: data})))
+                        sess.run(layer_output[i], feed_dict={self._X: data})))
             newRound, score, trees = self.game.geneticStep(actions)
             if newRound:
                 Round += 1
@@ -96,18 +121,28 @@ class Genetic(object):
                 idxs = self.getTopBirdIndex()
                 self._layer_w_b_1 = []
                 self._layer_w_b_output = []
-                for i in range(self.num // 2):
+                for i in range(20):
+                    self._layer_w_b_1.append(last_layer_1_w_b[i])
+                    self._layer_w_b_output.append(last_layer_output_w_b[i])
+                for i in range(30):
                     p = np.random.randint(len(idxs))
                     q = np.random.randint(len(idxs))
                     self._layer_w_b_1.append(last_layer_1_w_b[p])
                     self._layer_w_b_1.append(last_layer_1_w_b[q])
                     self._layer_w_b_output.append(last_layer_output_w_b[q])
                     self._layer_w_b_output.append(last_layer_output_w_b[p])
+                self.mutation()
 
-            print('Round:', Round,
-                  '/Step:', step, '/score:', score, '/MaxScore:',
-                  max(maxScore, score), '/trees:', trees, '/MaxTrees: ',
-                  max(maxTrees, trees))
+            maxScore = max(maxScore, score)
+            maxTrees = max(maxTrees, trees)
+            if maxTrees > 0 and maxTrees % 100 == 0:
+                saver.save(
+                    sess, 'saved_networks/genetic_bird', global_step=maxTrees)
+            if maxTrees == 1000:
+                break
+            print('Round:', Round, '/Step:', step, '/score:', score,
+                  '/MaxScore:', maxScore, '/trees:', trees, '/MaxTrees: ',
+                  maxTrees)
             step += 1
 
 
