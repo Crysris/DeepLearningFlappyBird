@@ -76,7 +76,7 @@ class Genetic(object):
                     'b'] = self._layer_w_b_output[i]['b'] + change[np.random.
                                                                    randint(4)]
 
-    def getTopBirdIndex(self, k=20):
+    def getTopBirdIndex(self, k=10):
         '''返回score最大的5只鸟的index'''
         tuples = [(self.game.birdList[i].score, i) for i in range(self.num)]
         return [val[1] for val in sorted(tuples[:k])]
@@ -105,13 +105,11 @@ class Genetic(object):
         while True:
             actions = []
             for i in range(self.num):
-                data = [[
-                    self.game.birdList[i]._playerx,
-                    self.game.birdList[i]._playery
-                ]]
+                data = self.game.getData()
                 actions.append(
                     np.argmax(
-                        sess.run(layer_output[i], feed_dict={self._X: data})))
+                        sess.run(
+                            layer_output[i], feed_dict={self._X: data[i]})))
             newRound, score, trees = self.game.geneticStep(actions)
             if newRound:
                 Round += 1
@@ -121,10 +119,10 @@ class Genetic(object):
                 idxs = self.getTopBirdIndex()
                 self._layer_w_b_1 = []
                 self._layer_w_b_output = []
-                for i in range(20):
+                for i in range(10):
                     self._layer_w_b_1.append(last_layer_1_w_b[i])
                     self._layer_w_b_output.append(last_layer_output_w_b[i])
-                for i in range(30):
+                for i in range(40):
                     p = np.random.randint(len(idxs))
                     q = np.random.randint(len(idxs))
                     self._layer_w_b_1.append(last_layer_1_w_b[p])
@@ -135,10 +133,10 @@ class Genetic(object):
 
             maxScore = max(maxScore, score)
             maxTrees = max(maxTrees, trees)
-            if maxTrees > 0 and maxTrees % 100 == 0:
+            if maxTrees > 0 and maxTrees % 1000 == 0:
                 saver.save(
                     sess, 'saved_networks/genetic_bird', global_step=maxTrees)
-            if maxTrees == 1000:
+            if maxTrees == 10000:
                 break
             print('Round:', Round, '/Step:', step, '/score:', score,
                   '/MaxScore:', maxScore, '/trees:', trees, '/MaxTrees: ',

@@ -129,6 +129,18 @@ class GameState(object):
             self.birdList[i].score for i in range(self.num)
         ]), np.max([self.birdList[i].passedTrees for i in range(self.num)])
 
+    def getData(self):
+        treeIndex = self.getNextTree()
+        data = []
+        for i in range(self.num):
+            dx = self.tree._lowerTrees[treeIndex]['x'] + IMAGES['tree'][0].get_width(
+            ) / 2 - self.birdList[i]._playerx - IMAGES['player'][0][0].get_width(
+            ) / 2
+            dy = self.tree._lowerTrees[treeIndex]['y'] - TREEGAPSIZE / 2 - self.birdList[i]._playery - IMAGES['player'][0][0].get_height(
+            ) / 2
+            data.append([[dx, dy]])
+        return data
+
     def groundMoving(self, speed):
         self.basex = -((-self.basex + speed) % self._baseShift)
         SCREEN.blit(IMAGES['img_ground'], (self.basex, BASTY))
@@ -179,7 +191,7 @@ class GameState(object):
             for x in self.tree._lowerTrees
         ]
         return bisect.bisect_left(
-            treeX, SCREENWIDTH * 0.1 + IMAGES['player'][0].get_width())
+            treeX, SCREENWIDTH * 0.1 + IMAGES['player'][0][0].get_width())
 
     def pixelCollision(self, rect1, rect2, hitmask1, hitmask2):
         '''检查两个物体是否相撞'''
@@ -236,12 +248,6 @@ class Bird(object):
         self._playery += min(self._initSpeed,
                              BASTY - self._playery - self._birdHeight)
         self._playery = max(self._playery, 0)
-        '''treeIndex = self.getNextTree()
-        dx = self.tree._lowerTrees[treeIndex]['x'] + IMAGES['tree'][0].get_width(
-        ) - self.bird._playerx - IMAGES['player'][0].get_width() / 2
-        dy = (self.tree._lowerTrees[treeIndex]['y'] - self.tree.
-              _upperTrees[treeIndex]['y'] - IMAGES['tree'][0].get_height()) / 2'''
-
         SCREEN.blit(IMAGES['player'][self._index][self._dirIndex],
                     (self._playerx, self._playery))
 
