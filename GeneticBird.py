@@ -6,7 +6,7 @@ import tensorflow as tf
 class Genetic(object):
     def __init__(self):
         '''初始化10只鸟遗传'''
-        self.num = 10
+        self.num = 50
 
     def initNetwork(self):
         '''初始化10只鸟的权值与bias'''
@@ -76,7 +76,7 @@ class Genetic(object):
                     'b'] = self._layer_w_b_output[i]['b'] + change[np.random.
                                                                    randint(4)]
 
-    def getTopBirdIndex(self, k=4):
+    def getTopBirdIndex(self, k=10):
         '''返回score最大的5只鸟的index'''
         tuples = [(self.game.birdList[i].score, i) for i in range(self.num)]
         return [val[1] for val in sorted(tuples[:k])]
@@ -119,10 +119,10 @@ class Genetic(object):
                 idxs = self.getTopBirdIndex()
                 self._layer_w_b_1 = []
                 self._layer_w_b_output = []
-                for i in range(4):
+                for i in range(10):
                     self._layer_w_b_1.append(last_layer_1_w_b[i])
                     self._layer_w_b_output.append(last_layer_output_w_b[i])
-                for i in range(3):
+                for i in range(20):
                     p = np.random.randint(len(idxs))
                     q = np.random.randint(len(idxs))
                     self._layer_w_b_1.append(last_layer_1_w_b[p])
@@ -133,10 +133,9 @@ class Genetic(object):
 
             maxScore = max(maxScore, score)
             maxTrees = max(maxTrees, trees)
-            if maxTrees > 0 and maxTrees % 1000 == 0:
+            if maxTrees == 1000:
                 saver.save(
                     sess, 'saved_networks/genetic_bird', global_step=maxTrees)
-            if maxTrees == 10000:
                 break
             print('Round:', Round, '/Step:', step, '/score:', score,
                   '/MaxScore:', maxScore, '/trees:', trees, '/MaxTrees: ',
