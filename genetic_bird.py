@@ -6,7 +6,7 @@ import tensorflow as tf
 class Genetic(object):
     def __init__(self):
         '''初始化10只鸟遗传'''
-        self.num = 50
+        self.num = 10
 
     def initNetwork(self):
         '''初始化10只鸟的权值与bias'''
@@ -76,7 +76,7 @@ class Genetic(object):
                     'b'] = self._layer_w_b_output[i]['b'] + change[np.random.
                                                                    randint(4)]
 
-    def getTopBirdIndex(self, k=10):
+    def getTopBirdIndex(self, k=4):
         '''返回score最大的5只鸟的index'''
         tuples = [(self.game.birdList[i].score, i) for i in range(self.num)]
         return [val[1] for val in sorted(tuples[:k])]
@@ -119,10 +119,10 @@ class Genetic(object):
                 idxs = self.getTopBirdIndex()
                 self._layer_w_b_1 = []
                 self._layer_w_b_output = []
-                for i in range(10):
+                for i in range(4):
                     self._layer_w_b_1.append(last_layer_1_w_b[i])
                     self._layer_w_b_output.append(last_layer_output_w_b[i])
-                for i in range(40):
+                for i in range(3):
                     p = np.random.randint(len(idxs))
                     q = np.random.randint(len(idxs))
                     self._layer_w_b_1.append(last_layer_1_w_b[p])

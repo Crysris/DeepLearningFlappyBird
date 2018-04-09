@@ -223,9 +223,9 @@ class Bird(object):
         # 最大下落速度
         self._maxSpeed = 30
         # 加速
-        self._accSpeed = 4
+        self._accSpeed = 5
         # 最大跳跃速度
-        self._flapSpeed = -25
+        self._flapSpeed = -8
         self._hasFlapped = False
         self._birdHeight = IMAGES['player'][index][self._dirIndex].get_height()
         self.score = 0
