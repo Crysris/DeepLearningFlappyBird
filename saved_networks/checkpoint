@@ -1,6 +1,0 @@
-model_checkpoint_path: "genetic_bird-10000"
-all_model_checkpoint_paths: "genetic_bird-6000"
-all_model_checkpoint_paths: "genetic_bird-7000"
-all_model_checkpoint_paths: "genetic_bird-8000"
-all_model_checkpoint_paths: "genetic_bird-9000"
-all_model_checkpoint_paths: "genetic_bird-10000"

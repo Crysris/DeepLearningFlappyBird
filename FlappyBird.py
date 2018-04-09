@@ -4,6 +4,7 @@ from pygame.locals import *
 import random
 import bisect
 import numpy as np
+import cv2
 
 FPS = 30
 SCREENWIDTH = 320
@@ -40,9 +41,8 @@ pg.display.set_caption('Flappy Bird')
 class GameState(object):
     def __init__(self, Num=1):
         # 草地
-        IMAGES['img_ground'] = pg.image.load('src/ground.png').convert_alpha()
-        # 背景图片
-        IMAGES['background'] = pg.image.load('src/bg4.png').convert()
+        IMAGES['img_ground'] = pg.image.load(
+            'src/img_ground.png').convert_alpha()
 
         # 上下两棵树
         TREE_LIST = ['src/tree_up.png', 'src/tree_down.png']
@@ -78,6 +78,32 @@ class GameState(object):
         self.tree = Tree()
         self.basex = 0
         self._baseShift = IMAGES['img_ground'].get_width() - SCREENWIDTH
+
+    def qearningStep(self, action):
+        for event in pg.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN
+                                      and event.key == K_ESCAPE):
+                pg.quit()
+                sys.exit()
+        ''' action[0]==1->飞 action[1]=1->不飞'''
+        if action[0] == 1 and self.birdList[0]._playery > 0:
+            self.birdList[0]._initSpeed = self.birdList[0]._flapSpeed
+            self.birdList[0]._hasFlapped = True
+        reword = 1
+        survived = True
+        if self.check(0)[0]:
+            self.birdList[0].survived = False
+            self.start()
+            survived = False
+            reword = -1
+        SCREEN.fill((0, 0, 0))
+        self.tree.start()
+        self.groundMoving()
+        self.birdList[0].flap()
+        image_data = pg.surfarray.arrry3d(pg.display.get_surface())
+        pg.display.update()
+        FPSCLOCK.tick(FPS)
+        return image_data, reword, survived
 
     def geneticStep(self, action):
         for event in pg.event.get():
@@ -116,7 +142,7 @@ class GameState(object):
                 for i in range(self.num)] == [0] * self.num:
             self.start()
             newRound = True
-        SCREEN.blit(IMAGES['background'], (0, 0))
+        SCREEN.fill((0, 0, 0))
         self.tree.start()
         self.groundMoving(self.fSpeed)
         for i in range(self.num):
@@ -219,13 +245,13 @@ class Bird(object):
         self._loopIter = 0
         self._dirIndex = 0
         # 初始速度
-        self._initSpeed = -9
+        self._initSpeed = -0
         # 最大下落速度
-        self._maxSpeed = 30
+        self._maxSpeed = 10
         # 加速
-        self._accSpeed = 5
+        self._accSpeed = 1
         # 最大跳跃速度
-        self._flapSpeed = -8
+        self._flapSpeed = -9
         self._hasFlapped = False
         self._birdHeight = IMAGES['player'][index][self._dirIndex].get_height()
         self.score = 0
