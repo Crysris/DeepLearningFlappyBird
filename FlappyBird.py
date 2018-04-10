@@ -98,9 +98,9 @@ class GameState(object):
             reword = -1
         SCREEN.fill((0, 0, 0))
         self.tree.start()
-        self.groundMoving()
+        self.groundMoving(self.fSpeed)
         self.birdList[0].flap()
-        image_data = pg.surfarray.arrry3d(pg.display.get_surface())
+        image_data = pg.surfarray.array3d(pg.display.get_surface())
         pg.display.update()
         FPSCLOCK.tick(FPS)
         return image_data, reword, survived
