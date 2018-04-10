@@ -117,9 +117,9 @@ class DQN(object):
 
                 # 获得训练样本中的数据
                 img_batch = [d[0] for d in batch]
-                a_batch = [d[0] for d in batch]
-                r_batch = [d[0] for d in batch]
-                img1_batch = [d[0] for d in batch]
+                a_batch = [d[1] for d in batch]
+                r_batch = [d[2] for d in batch]
+                img1_batch = [d[4] for d in batch]
 
                 y_batch = []
                 readout1_batch = sess.run(
