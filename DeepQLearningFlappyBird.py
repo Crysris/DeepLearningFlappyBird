@@ -9,3 +9,4 @@ class DQN(object):
 
     def initNetwork(self):
         '''输入图像为[80,80,1]'''
+        weights_conv1=tf.Variable()

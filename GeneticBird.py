@@ -6,7 +6,7 @@ import tensorflow as tf
 class Genetic(object):
     def __init__(self):
         '''初始化10只鸟遗传'''
-        self.num = 50
+        self.num = 10
 
     def initNetwork(self):
         '''初始化10只鸟的权值与bias'''
@@ -76,7 +76,7 @@ class Genetic(object):
                     'b'] = self._layer_w_b_output[i]['b'] + change[np.random.
                                                                    randint(4)]
 
-    def getTopBirdIndex(self, k=10):
+    def getTopBirdIndex(self, k=5):
         '''返回score最大的5只鸟的index'''
         tuples = [(self.game.birdList[i].score, i) for i in range(self.num)]
         return [val[1] for val in sorted(tuples[:k])]
@@ -119,24 +119,27 @@ class Genetic(object):
                 idxs = self.getTopBirdIndex()
                 self._layer_w_b_1 = []
                 self._layer_w_b_output = []
-                for i in range(10):
+                for i in range(5):
                     self._layer_w_b_1.append(last_layer_1_w_b[i])
                     self._layer_w_b_output.append(last_layer_output_w_b[i])
-                for i in range(20):
+                for i in range(5):
                     p = np.random.randint(len(idxs))
                     q = np.random.randint(len(idxs))
                     self._layer_w_b_1.append(last_layer_1_w_b[p])
-                    self._layer_w_b_1.append(last_layer_1_w_b[q])
+                    #self._layer_w_b_1.append(last_layer_1_w_b[q])
                     self._layer_w_b_output.append(last_layer_output_w_b[q])
-                    self._layer_w_b_output.append(last_layer_output_w_b[p])
+                    #self._layer_w_b_output.append(last_layer_output_w_b[p])
                 self.mutation()
 
             maxScore = max(maxScore, score)
             maxTrees = max(maxTrees, trees)
-            if maxTrees == 1000:
+            if maxTrees > 0 and maxTrees % 100 == 0:
                 saver.save(
                     sess, 'saved_networks/genetic_bird', global_step=maxTrees)
+
+            if maxTrees == 1000:
                 break
+
             print('Round:', Round, '/Step:', step, '/score:', score,
                   '/MaxScore:', maxScore, '/trees:', trees, '/MaxTrees: ',
                   maxTrees)

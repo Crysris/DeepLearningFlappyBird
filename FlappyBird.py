@@ -20,7 +20,7 @@ IMAGES, HITMASKS = {}, {}
 BIRDS = []
 
 # 树与树间的距离
-DIS = 250
+DIS = 200
 # DIS=250
 
 # 奖励
@@ -61,7 +61,7 @@ class GameState(object):
 
         # 草地移动速度
         self.lSpeed = 4
-        self.fSpeed = 200
+        self.fSpeed = 50
         self.num = Num
         # 求出鸟，草地，树的hitmask
         HITMASKS['player'] = (self.getHitMask(IMAGES['player'][0][0]),
@@ -290,18 +290,18 @@ class Bird(object):
 class Tree(object):
     def __init__(self):
         # 树移动速度
-        self._treeSpeed = -12.5
+        self._treeSpeed = -8
         newTrees = [self.getRandomTree() for i in range(4)]
         self._upperTrees = []
         self._lowerTrees = []
         self._count = 0
-        for i in range(1):
+        for i in range(2):
             self._upperTrees.append({
-                'x': SCREENWIDTH - DIS * (i) + 150,
+                'x': SCREENWIDTH - DIS * (1 - i) + 100,
                 'y': newTrees[i][0]['y']
             })
             self._lowerTrees.append({
-                'x': SCREENWIDTH - DIS * (i) + 150,
+                'x': SCREENWIDTH - DIS * (1 - i) + 100,
                 'y': newTrees[i][1]['y']
             })
 
@@ -333,9 +333,9 @@ class Tree(object):
         treeHeight = IMAGES['tree'][0].get_height()
         treeX = SCREENWIDTH
         return [{
-            'x': treeX + 150,
+            'x': treeX + 100,
             'y': gapY - treeHeight
         }, {
-            'x': treeX + 150,
+            'x': treeX + 100,
             'y': gapY + TREEGAPSIZE
         }]
