@@ -24,33 +24,59 @@ class DQN(object):
         return tf.nn.conv2d(
             x, w, strides=[1, stride, stride, 1], padding="SAME")
 
-    def max_pool(self, x):
+    def max_pool(self, x, stride):
         return tf.nn.max_pool(
-            x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+            x,
+            ksize=[1, 2, 2, 1],
+            strides=[1, stride, stride, 1],
+            padding="SAME")
 
     def initNetwork(self):
         '''输入图像为[80,80,1]'''
-        # 第一层卷积   filter=[4,4,1,1] stride=4  [80,80,1]==>[20,20,1]
-        weights_conv1 = tf.Variable(tf.random_normal([4, 4, 1, 1]))
-        bias_conv1 = tf.Variable(tf.random_normal([1]))
-        # max pooling filter=[2,2] stride=2     [20,20,1]==>[10,10,1]
+        # 第一层卷积   filter=[2,2,1,20] stride=2  [80,80,1]==>[40,40,20]
+        weights_conv1 = tf.Variable(
+            tf.truncated_normal([2, 2, 1, 20], stddev=0.1))
+        bias_conv1 = tf.Variable(tf.truncated_normal([20], stddev=0.1))
+        # 第一层池化 filter=[2,2] stride=2     [40,40,20]==>[20,20,20]
 
-        # 第二层卷积 filter=[2,2,1,1] stride=2   [10,10,1]==>[5,5,1]
-        weights_conv2 = tf.Variable(tf.random_normal([2, 2, 1, 1]))
-        bias_conv2 = tf.Variable(tf.random_normal([1]))
+        # 第二层卷积 filter=[2,2,20,40] stride=2   [20,20,20]==>[10,10,40]
+        weights_conv2 = tf.Variable(
+            tf.truncated_normal([2, 2, 20, 40], stddev=0.1))
+        bias_conv2 = tf.Variable(tf.truncated_normal([40], stddev=0.1))
+        # 第二层池化 filter=[2,2] stride=2 [10,10,40]==>[5,5,40]
 
-        # 全连接层1 [25,2] [1,25]==>[1,2]
-        weights_fc1 = tf.Variable(tf.random_normal([25, 2]))
-        bias_fc1 = tf.Variable(tf.random_normal([2]))
+        # 第三层卷积 filter=[2,2,40,60] stride=2 [5,5,40]==>[3,3,60]
+        # 第三层池化 filter[2,2] stride=2 [3,3,60]==>[2,2,60]
+        weights_conv3 = tf.Variable(
+            tf.truncated_normal([2, 2, 40, 60], stddev=0.1))
+        bias_conv3 = tf.Variable(tf.truncated_normal([60], stddev=0.1))
+
+        # [2,2,60]==>[1,240]
+
+        # 全连接层1 [240,80]          [1,240]==>[1,80]
+        weights_fc1 = tf.Variable(tf.truncated_normal([240, 80], stddev=0.1))
+        bias_fc1 = tf.Variable(tf.truncated_normal([80], stddev=0.1))
+
+        # 全连接层2 [80,2]           [1,80]==>[1,2]
+        weights_fc2 = tf.Variable(tf.truncated_normal([80, 2], stddev=0.1))
+        bias_fc2 = tf.Variable(tf.truncated_normal([2], stddev=0.1))
 
         h_conv1 = tf.nn.tanh(
-            tf.add(self.conv2d(self._x, weights_conv1, 4), bias_conv1))
-        h_pool1 = self.max_pool(h_conv1)
+            tf.add(self.conv2d(self._x, weights_conv1, 2), bias_conv1))
+        h_pool1 = self.max_pool(h_conv1, 2)
+
         h_conv2 = tf.nn.tanh(
             tf.add(self.conv2d(h_pool1, weights_conv2, 2), bias_conv2))
-        h_conv2_flat = tf.reshape(h_conv2, [-1, 25])
+        h_pool2 = self.max_pool(h_conv2, 2)
+        h_conv3 = tf.nn.tanh(
+            tf.add(self.conv2d(h_pool2, weights_conv3, 2), bias_conv3))
+        h_pool3 = self.max_pool(h_conv3, 2)
+        h_pool3_flat = tf.reshape(h_pool3, [-1, 240])
 
-        readout = tf.add(tf.matmul(h_conv2_flat, weights_fc1), bias_fc1)
+        h_fc1 = tf.nn.tanh(
+            tf.add(tf.matmul(h_pool3_flat, weights_fc1), bias_fc1))
+
+        readout = tf.add(tf.matmul(h_fc1, weights_fc2), bias_fc2)
         return readout
 
     def trainNetwork(self, readout, sess):
@@ -143,7 +169,7 @@ class DQN(object):
             img_data = img_data1
             step += 1
 
-            if step % 100000 == 0:
+            if step % 500000 == 0:
                 saver.save(
                     sess, 'saved_network_qlearning/dql', global_step=step)
 
