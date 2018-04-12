@@ -7,7 +7,7 @@ import random
 
 BATCH_SIZE = 64
 GAMMA = 0.99
-OBSERVE = 10000
+OBSERVE = 1000
 EXPLORE = 2000000
 INITIAL_EPSILON = 0.1
 FINAL_EPSILON = 0.0001
@@ -16,7 +16,7 @@ REPLAY_MEMORY = 50000
 
 class DQN(object):
     def __init__(self):
-        self._x = tf.placeholder('float', [None, 80, 80, 1])
+        self._x = tf.placeholder('float', [None, 80, 80, 4])
         self._y = tf.placeholder('float', [None])
         self._a = tf.placeholder('float', [None, 2])
 
@@ -32,10 +32,10 @@ class DQN(object):
             padding="SAME")
 
     def initNetwork(self):
-        '''输入图像为[80,80,1]'''
-        # 第一层卷积   filter=[2,2,1,20] stride=2  [80,80,1]==>[40,40,20]
+        '''输入图像为[80,80,4]'''
+        # 第一层卷积   filter=[2,2,4,20] stride=2  [80,80,4]==>[40,40,20]
         weights_conv1 = tf.Variable(
-            tf.truncated_normal([2, 2, 1, 20], stddev=0.1))
+            tf.truncated_normal([2, 2, 4, 20], stddev=0.1))
         bias_conv1 = tf.Variable(tf.truncated_normal([20], stddev=0.1))
         # 第一层池化 filter=[2,2] stride=2     [40,40,20]==>[20,20,20]
 
@@ -82,7 +82,7 @@ class DQN(object):
     def trainNetwork(self, readout, sess):
         readout_t = tf.reduce_mean(tf.multiply(readout, self._a))
         cost = tf.reduce_mean(tf.square(self._y - readout_t))
-        train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
+        train_step = tf.train.AdadeltaOptimizer(0.0005).minimize(cost)
 
         game = GameState()
         game.start()
@@ -93,7 +93,7 @@ class DQN(object):
             cv2.resize(img_data, (80, 80)), cv2.COLOR_BGR2GRAY)
 
         ret, img_data = cv2.threshold(img_data, 1, 255, cv2.THRESH_BINARY)
-        img_data = np.reshape(img_data, (80, 80, 1))
+        img_data = np.stack((img_data, img_data, img_data, img_data), axis=2)
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
         D = deque()
@@ -130,7 +130,8 @@ class DQN(object):
                 cv2.resize(img_data1, (80, 80)), cv2.COLOR_BGR2GRAY)
             ret, img_data1 = cv2.threshold(img_data1, 1, 255,
                                            cv2.THRESH_BINARY)
-            img_data1 = np.reshape(img_data1, (80, 80, 1))
+            img_data1 = np.stack(
+                (img_data1, img_data1, img_data1, img_data1), axis=2)
             D.append([img_data, action, reward, survived, img_data1])
 
             if len(D) > REPLAY_MEMORY:
@@ -169,7 +170,7 @@ class DQN(object):
             img_data = img_data1
             step += 1
 
-            if step % 500000 == 0:
+            if step % 100000 == 0:
                 saver.save(
                     sess, 'saved_network_qlearning/dql', global_step=step)
 
