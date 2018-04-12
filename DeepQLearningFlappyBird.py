@@ -7,7 +7,7 @@ import random
 
 BATCH_SIZE = 64
 GAMMA = 0.99
-OBSERVE = 1000
+OBSERVE = 100
 EXPLORE = 2000000
 INITIAL_EPSILON = 0.1
 FINAL_EPSILON = 0.0001
@@ -93,6 +93,7 @@ class DQN(object):
             cv2.resize(img_data, (80, 80)), cv2.COLOR_BGR2GRAY)
 
         ret, img_data = cv2.threshold(img_data, 1, 255, cv2.THRESH_BINARY)
+        #img_data = np.reshape(img_data, [80, 80, 1])
         img_data = np.stack((img_data, img_data, img_data, img_data), axis=2)
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
@@ -130,6 +131,7 @@ class DQN(object):
                 cv2.resize(img_data1, (80, 80)), cv2.COLOR_BGR2GRAY)
             ret, img_data1 = cv2.threshold(img_data1, 1, 255,
                                            cv2.THRESH_BINARY)
+            #img_data1 = np.reshape(img_data1, [80, 80, 1])
             img_data1 = np.stack(
                 (img_data1, img_data1, img_data1, img_data1), axis=2)
             D.append([img_data, action, reward, survived, img_data1])
