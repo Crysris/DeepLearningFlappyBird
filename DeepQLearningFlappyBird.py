@@ -7,7 +7,7 @@ import random
 
 BATCH_SIZE = 64
 GAMMA = 0.99
-OBSERVE = 100
+OBSERVE = 10000
 EXPLORE = 2000000
 INITIAL_EPSILON = 0.1
 FINAL_EPSILON = 0.0001
@@ -33,45 +33,45 @@ class DQN(object):
 
     def initNetwork(self):
         '''输入图像为[80,80,4]'''
-        # 第一层卷积   filter=[2,2,4,20] stride=2  [80,80,4]==>[40,40,20]
+        # 第一层卷积   filter=[2,2,4,32] stride=2  [80,80,4]==>[40,40,32]
         weights_conv1 = tf.Variable(
-            tf.truncated_normal([2, 2, 4, 20], stddev=0.1))
-        bias_conv1 = tf.Variable(tf.truncated_normal([20], stddev=0.1))
-        # 第一层池化 filter=[2,2] stride=2     [40,40,20]==>[20,20,20]
+            tf.truncated_normal([2, 2, 4, 32], stddev=0.1))
+        bias_conv1 = tf.Variable(tf.constant([0.1],shape=[32]))
+        # 第一层池化 filter=[2,2] stride=2     [40,40,32]==>[20,20,32]
 
-        # 第二层卷积 filter=[2,2,20,40] stride=2   [20,20,20]==>[10,10,40]
+        # 第二层卷积 filter=[2,2,32,64] stride=1   [20,20,32]==>[20,20,64]
         weights_conv2 = tf.Variable(
-            tf.truncated_normal([2, 2, 20, 40], stddev=0.1))
-        bias_conv2 = tf.Variable(tf.truncated_normal([40], stddev=0.1))
-        # 第二层池化 filter=[2,2] stride=2 [10,10,40]==>[5,5,40]
+            tf.truncated_normal([2, 2, 32, 64], stddev=0.1))
+        bias_conv2 = tf.Variable(tf.constant([0.1],shape=[64]))
+        # 第二层池化 filter=[2,2] stride=2 [20,20,64]==>[10,10,64]
 
-        # 第三层卷积 filter=[2,2,40,60] stride=2 [5,5,40]==>[3,3,60]
-        # 第三层池化 filter[2,2] stride=2 [3,3,60]==>[2,2,60]
+        # 第三层卷积 filter=[2,2,64,80] stride=1 [10,10,64]==>[10,10，80]
+        # 第三层池化 filter[2,2] stride=2 [10,10,80]==>[5,5,80]
         weights_conv3 = tf.Variable(
-            tf.truncated_normal([2, 2, 40, 60], stddev=0.1))
-        bias_conv3 = tf.Variable(tf.truncated_normal([60], stddev=0.1))
+            tf.truncated_normal([2, 2, 64, 80], stddev=0.1))
+        bias_conv3 = tf.Variable(tf.constant([0.1],shape=[80]))
 
-        # [2,2,60]==>[1,240]
+        # [5,5,80]==>[1，2000]
 
-        # 全连接层1 [240,80]          [1,240]==>[1,80]
-        weights_fc1 = tf.Variable(tf.truncated_normal([240, 80], stddev=0.1))
-        bias_fc1 = tf.Variable(tf.truncated_normal([80], stddev=0.1))
+        # 全连接层1 [2000,256]          [1,2000]==>[1,256]
+        weights_fc1 = tf.Variable(tf.truncated_normal([2000, 256], stddev=0.1))
+        bias_fc1 = tf.Variable(tf.constant([0.1],shape=[256]))
 
-        # 全连接层2 [80,2]           [1,80]==>[1,2]
-        weights_fc2 = tf.Variable(tf.truncated_normal([80, 2], stddev=0.1))
-        bias_fc2 = tf.Variable(tf.truncated_normal([2], stddev=0.1))
+        # 全连接层2 [256,2]           [1,256]==>[1,2]
+        weights_fc2 = tf.Variable(tf.truncated_normal([256, 2], stddev=0.1))
+        bias_fc2 = tf.Variable(tf.constant([0.1],shape=[2]))
 
         h_conv1 = tf.nn.tanh(
             tf.add(self.conv2d(self._x, weights_conv1, 2), bias_conv1))
         h_pool1 = self.max_pool(h_conv1, 2)
 
         h_conv2 = tf.nn.tanh(
-            tf.add(self.conv2d(h_pool1, weights_conv2, 2), bias_conv2))
+            tf.add(self.conv2d(h_pool1, weights_conv2, 1), bias_conv2))
         h_pool2 = self.max_pool(h_conv2, 2)
         h_conv3 = tf.nn.tanh(
-            tf.add(self.conv2d(h_pool2, weights_conv3, 2), bias_conv3))
+            tf.add(self.conv2d(h_pool2, weights_conv3, 1), bias_conv3))
         h_pool3 = self.max_pool(h_conv3, 2)
-        h_pool3_flat = tf.reshape(h_pool3, [-1, 240])
+        h_pool3_flat = tf.reshape(h_pool3, [-1, 2000])
 
         h_fc1 = tf.nn.tanh(
             tf.add(tf.matmul(h_pool3_flat, weights_fc1), bias_fc1))
@@ -82,7 +82,7 @@ class DQN(object):
     def trainNetwork(self, readout, sess):
         readout_t = tf.reduce_mean(tf.multiply(readout, self._a))
         cost = tf.reduce_mean(tf.square(self._y - readout_t))
-        train_step = tf.train.AdadeltaOptimizer(0.0005).minimize(cost)
+        train_step = tf.train.AdadeltaOptimizer(5*1e-6).minimize(cost)
 
         game = GameState()
         game.start()
@@ -172,7 +172,7 @@ class DQN(object):
             img_data = img_data1
             step += 1
 
-            if step % 100000 == 0:
+            if step % 500000 == 0:
                 saver.save(
                     sess, 'saved_network_qlearning/dql', global_step=step)
 

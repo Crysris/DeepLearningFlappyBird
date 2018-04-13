@@ -290,7 +290,7 @@ class Bird(object):
 class Tree(object):
     def __init__(self):
         # 树移动速度
-        self._treeSpeed = -8
+        self._treeSpeed = -4
         newTrees = [self.getRandomTree() for i in range(4)]
         self._upperTrees = []
         self._lowerTrees = []
