@@ -36,30 +36,30 @@ class DQN(object):
         # 第一层卷积   filter=[2,2,4,32] stride=2  [80,80,4]==>[40,40,32]
         weights_conv1 = tf.Variable(
             tf.truncated_normal([2, 2, 4, 32], stddev=0.1))
-        bias_conv1 = tf.Variable(tf.constant([0.1],shape=[32]))
+        bias_conv1 = tf.Variable(tf.constant(0.1, shape=[32]))
         # 第一层池化 filter=[2,2] stride=2     [40,40,32]==>[20,20,32]
 
         # 第二层卷积 filter=[2,2,32,64] stride=1   [20,20,32]==>[20,20,64]
         weights_conv2 = tf.Variable(
             tf.truncated_normal([2, 2, 32, 64], stddev=0.1))
-        bias_conv2 = tf.Variable(tf.constant([0.1],shape=[64]))
+        bias_conv2 = tf.Variable(tf.constant(0.1, shape=[64]))
         # 第二层池化 filter=[2,2] stride=2 [20,20,64]==>[10,10,64]
 
         # 第三层卷积 filter=[2,2,64,80] stride=1 [10,10,64]==>[10,10，80]
         # 第三层池化 filter[2,2] stride=2 [10,10,80]==>[5,5,80]
         weights_conv3 = tf.Variable(
             tf.truncated_normal([2, 2, 64, 80], stddev=0.1))
-        bias_conv3 = tf.Variable(tf.constant([0.1],shape=[80]))
+        bias_conv3 = tf.Variable(tf.constant(0.1, shape=[80]))
 
         # [5,5,80]==>[1，2000]
 
-        # 全连接层1 [2000,256]          [1,2000]==>[1,256]
-        weights_fc1 = tf.Variable(tf.truncated_normal([2000, 256], stddev=0.1))
-        bias_fc1 = tf.Variable(tf.constant([0.1],shape=[256]))
+        # 全连接层1 [2000,512]          [1,2000]==>[1,512]
+        weights_fc1 = tf.Variable(tf.truncated_normal([2000, 512], stddev=0.1))
+        bias_fc1 = tf.Variable(tf.constant(0.1, shape=[256]))
 
-        # 全连接层2 [256,2]           [1,256]==>[1,2]
-        weights_fc2 = tf.Variable(tf.truncated_normal([256, 2], stddev=0.1))
-        bias_fc2 = tf.Variable(tf.constant([0.1],shape=[2]))
+        # 全连接层2 [512,2]           [1,512]==>[1,2]
+        weights_fc2 = tf.Variable(tf.truncated_normal([512, 2], stddev=0.1))
+        bias_fc2 = tf.Variable(tf.constant(0.1, shape=[2]))
 
         h_conv1 = tf.nn.tanh(
             tf.add(self.conv2d(self._x, weights_conv1, 2), bias_conv1))
@@ -76,13 +76,14 @@ class DQN(object):
         h_fc1 = tf.nn.tanh(
             tf.add(tf.matmul(h_pool3_flat, weights_fc1), bias_fc1))
 
-        readout = tf.add(tf.matmul(h_fc1, weights_fc2), bias_fc2)
+        readout = tf.nn.softmax(
+            tf.add(tf.matmul(h_fc1, weights_fc2), bias_fc2))
         return readout
 
     def trainNetwork(self, readout, sess):
         readout_t = tf.reduce_mean(tf.multiply(readout, self._a))
         cost = tf.reduce_mean(tf.square(self._y - readout_t))
-        train_step = tf.train.AdadeltaOptimizer(5*1e-6).minimize(cost)
+        train_step = tf.train.AdadeltaOptimizer(5 * 1e-6).minimize(cost)
 
         game = GameState()
         game.start()
@@ -93,7 +94,7 @@ class DQN(object):
             cv2.resize(img_data, (80, 80)), cv2.COLOR_BGR2GRAY)
 
         ret, img_data = cv2.threshold(img_data, 1, 255, cv2.THRESH_BINARY)
-        #img_data = np.reshape(img_data, [80, 80, 1])
+        # img_data = np.reshape(img_data, [80, 80, 1])
         img_data = np.stack((img_data, img_data, img_data, img_data), axis=2)
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())

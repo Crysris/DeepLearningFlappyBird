@@ -7,8 +7,8 @@ import numpy as np
 import cv2
 
 FPS = 30
-SCREENWIDTH = 320
-SCREENHEIGHT = 640
+SCREENWIDTH = 300
+SCREENHEIGHT = 620
 # SCREENWIDTH=1000
 # SCREENHIEGHT=640
 
@@ -20,7 +20,7 @@ IMAGES, HITMASKS = {}, {}
 BIRDS = []
 
 # 树与树间的距离
-DIS = 200
+DIS = 160
 # DIS=250
 
 # 奖励
@@ -45,7 +45,7 @@ class GameState(object):
             'src/img_ground.png').convert_alpha()
 
         # 上下两棵树
-        TREE_LIST = ['src/tree_up.png', 'src/tree_down.png']
+        TREE_LIST = ['src/pipe_down.png', 'src/pipe_up.png']
         IMAGES['tree'] = (pg.image.load(TREE_LIST[0]).convert_alpha(),
                           pg.image.load(TREE_LIST[1]).convert_alpha())
         # 鸟图片

@@ -21,18 +21,20 @@ class Genetic(object):
             self._layer_w_b_1.append({
                 'w':
                 tf.Variable(
-                    tf.random_normal(
-                        [self._n_input_layer, self._n_hidden_layer_1])),
+                    tf.truncated_normal(
+                        [self._n_input_layer, self._n_hidden_layer_1],
+                        stddev=0.1)),
                 'b':
-                tf.Variable(tf.random_normal([self._n_hidden_layer_1]))
+                tf.Variable(tf.constant(0.1, shape=[self._n_hidden_layer_1]))
             })
             self._layer_w_b_output.append({
                 'w':
                 tf.Variable(
-                    tf.random_normal(
-                        [self._n_hidden_layer_1, self._n_output_layer])),
+                    tf.truncated_normal(
+                        [self._n_hidden_layer_1, self._n_output_layer],
+                        stddev=0.1)),
                 'b':
-                tf.Variable(tf.random_normal([self._n_output_layer]))
+                tf.Variable(tf.constant(0.1, shape=[self._n_output_layer]))
             })
 
     def predict(self, index):
