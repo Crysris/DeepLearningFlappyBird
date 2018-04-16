@@ -5,9 +5,9 @@ from collections import deque
 import cv2
 import random
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 GAMMA = 0.99
-OBSERVE = 100
+OBSERVE = 10000
 EXPLORE = 2000000
 INITIAL_EPSILON = 0.1
 FINAL_EPSILON = 0.0001
@@ -48,7 +48,7 @@ class DQN(object):
         # 第三层卷积 filter=[2,2,64,80] stride=1 [10,10,64]==>[10,10，80]
         # 第三层池化 filter[2,2] stride=2 [10,10,80]==>[5,5,80]
         weights_conv3 = tf.Variable(
-            tf.truncated_normal([2, 2, 64, 64], stddev=0.1))
+            tf.truncated_normal([3, 3, 64, 64], stddev=0.1))
         bias_conv3 = tf.Variable(tf.constant(0.01, shape=[64]))
 
         # [5,5,80]==>[1，2000]
@@ -89,8 +89,8 @@ class DQN(object):
         action = np.array([0, 1])
         action_idx = 0
         img_data, reward, survived = game.qearningStep(action)
-        img_data = cv2.cvtColor(
-            cv2.resize(img_data, (80, 80)), cv2.COLOR_BGR2GRAY)
+        img_data = cv2.resize(img_data, (80, 80))
+        img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2GRAY)
 
         ret, img_data = cv2.threshold(img_data, 1, 255, cv2.THRESH_BINARY)
         # img_data = np.reshape(img_data, [80, 80, 1])
@@ -132,8 +132,7 @@ class DQN(object):
             ret, img_data1 = cv2.threshold(img_data1, 1, 255,
                                            cv2.THRESH_BINARY)
             #img_data1 = np.reshape(img_data1, [80, 80, 1])
-            img_data1 = np.stack(
-                (img_data1, img_data1, img_data1, img_data1), axis=2)
+            img_data1 = np.append(img_data1, img_data[:, :, :3], axis=2)
             D.append([img_data, action, reward, survived, img_data1])
 
             if len(D) > REPLAY_MEMORY:
